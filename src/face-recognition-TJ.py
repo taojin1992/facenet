@@ -110,8 +110,8 @@ def recognize_face(unknown_face_embedding, database):
 			min_dist = dist
 			identity = name
 	# set the threshold
-	if(min_dist > 1.05): 
-		similar = name
+	if(min_dist > 0.9): 
+		similar = identity
 		identity = "unknown but is most similar to " + similar
 	return identity,min_dist
 
@@ -198,7 +198,7 @@ if __name__ == '__main__':
 #	simplify('/Users/jintao01/Documents/Arm-Buddies/unknown_pics/5.jpg','/Users/jintao01/Documents/Arm-Buddies/5.jpg')
 	database = initialize('/Users/jintao01/Documents/facematch/20180204-160909', '/Users/jintao01/Documents/Arm-Buddies', 160, 44, 1.0)
 	# print(database)
-	person_file = ['/Users/jintao01/Documents/Arm-Buddies/unknown_pics/5-wrong.jpg']
+	person_file = ['/Users/jintao01/Documents/Arm-Buddies/unknown_pics/3.jpg']
 	unknown_face_embedding = get_single_embedding(person_file, '/Users/jintao01/Documents/facematch/20180204-160909', 160, 44, 1.0)
 	print(recognize_face(unknown_face_embedding, database))
 
