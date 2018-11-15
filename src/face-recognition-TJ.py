@@ -50,7 +50,8 @@ def load_and_align_data(image_paths, image_size = 160, margin = 44, gpu_memory_f
         bb[3] = np.minimum(det[3]+margin/2, img_size[0])
         print(bb)
         cv2.rectangle(img, (bb[0], bb[1]), (bb[2], bb[3]), (0,255,0), 2)
-        cv2.imshow(os.path.splitext(os.path.basename(image))[0], img)   # show the detected image
+        RGB_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        cv2.imshow(os.path.splitext(os.path.basename(image))[0], RGB_img)   # show the detected image in RGB
         k = cv2.waitKey(1)
         cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
         aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
@@ -110,7 +111,8 @@ def recognize_face(unknown_face_embedding, database):
 			identity = name
 	# set the threshold
 	if(min_dist > 1.05): 
-		identity = "unknown"
+		similar = name
+		identity = "unknown but is most similar to " + similar
 	return identity,min_dist
 
 # person_file is ['/full/path/****.jpg']
@@ -131,11 +133,76 @@ def get_single_embedding(person_file, model_path, image_size = 160, margin = 44,
 	print(emb[0])
 	return emb[0]
 
+# '/Users/jintao01/Documents/Arm-Buddies/Yue_Without_Glasses.jpg'
+def rotate(image_path):
+	#loading the image into a numpy array
+	img = cv2.imread(image_path)
+ 
+	#rotating the image
+	rotated_90_clockwise = np.rot90(img) #rotated 90 deg once
+	rotated_180_clockwise = np.rot90(rotated_90_clockwise)
+	rotated_270_clockwise = np.rot90(rotated_180_clockwise)
+ 
+	#displaying all the images in different windows(optional)
+	cv2.imshow('Original', img)
+	cv2.imshow('90 deg', rotated_90_clockwise)
+	cv2.imshow('Inverted', rotated_180_clockwise)
+	cv2.imshow('270 deg', rotated_270_clockwise)
+ 
+	k = cv2.waitKey(0)
+	if (k == 27): #closes all windows if ESC is pressed
+		cv2.destroyAllWindows()
+
+# file = '/Users/jintao01/Documents/Arm-Buddies/too/Yue_Without_Glasses.jpg'
+# file = '/Users/jintao01/Documents/Arm-Buddies/unknown_pics/6.jpg'
+# image = cv2.imread(file)
+# image = image_resize(image, height = 600)
+# cv2.imwrite("/Users/jintao01/Documents/Arm-Buddies/face-yue.jpg", image)
+
+def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
+	# initialize the dimensions of the image to be resized and
+	# grab the image size
+	dim = None
+	(h, w) = image.shape[:2]
+	# if both the width and height are None, then return the
+	# original image
+	if width is None and height is None:
+		return image
+	# check to see if the width is None
+	if width is None:
+		# calculate the ratio of the height and construct the
+		# dimensions
+		r = height / float(h)
+		dim = (int(w * r), height)
+	# otherwise, the height is None
+	else:
+		# calculate the ratio of the width and construct the
+		# dimensions
+		r = width / float(w)
+		dim = (width, int(h * r))
+	# resize the image
+	resized = cv2.resize(image, dim, interpolation = inter)
+	# return the resized image
+	return resized
+
+# for iphone high-resolution image preprocessing (use the same-quality images for database and testing)
+def simplify(file, target):
+	image = cv2.imread(file)
+	image = image_resize(image, height = 600)
+	cv2.imwrite(target, image)
+
+
 if __name__ == '__main__':
+#	simplify('/Users/jintao01/Documents/Arm-Buddies/Vikas.jpg','/Users/jintao01/Documents/Arm-Buddies/Vikas1.jpg')
+#	simplify('/Users/jintao01/Documents/Arm-Buddies/Saina.jpg','/Users/jintao01/Documents/Arm-Buddies/Saina1.jpg')
+#	simplify('/Users/jintao01/Documents/Arm-Buddies/unknown_pics/5.jpg','/Users/jintao01/Documents/Arm-Buddies/5.jpg')
 	database = initialize('/Users/jintao01/Documents/facematch/20180204-160909', '/Users/jintao01/Documents/Arm-Buddies', 160, 44, 1.0)
 	# print(database)
-	person_file = ['/Users/jintao01/Documents/Arm-Buddies/unknown_pics/1.jpg']
+	person_file = ['/Users/jintao01/Documents/Arm-Buddies/unknown_pics/5-wrong.jpg']
 	unknown_face_embedding = get_single_embedding(person_file, '/Users/jintao01/Documents/facematch/20180204-160909', 160, 44, 1.0)
 	print(recognize_face(unknown_face_embedding, database))
 
+#same resolution quality, frontal (instead of tilted face), clear background should work
+# for better result, train from scatch using customer's dataset
+# for conveinience, using the pretrained model means no need to retrain the model when new faces are added
 
