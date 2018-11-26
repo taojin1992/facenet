@@ -16,6 +16,7 @@ import tensorflow as tf
 import facenet
 import align.detect_face
 from os import listdir
+import os
 from os.path import isfile, join
 
 # load_and_align_data(['/Users/jintao01/Documents/facenet/dataset/lfw/raw/Aaron_Eckhart/Aaron_Eckhart_0001.jpg'], 160, 44, 1.0)
@@ -52,7 +53,7 @@ def load_and_align_data(image_paths, image_size = 160, margin = 44, gpu_memory_f
         cv2.rectangle(img, (bb[0], bb[1]), (bb[2], bb[3]), (0,255,0), 2)
         RGB_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         cv2.imshow(os.path.splitext(os.path.basename(image))[0], RGB_img)   # show the detected image in RGB
-        k = cv2.waitKey(1)
+        k = cv2.waitKey(0)
         cropped = img[bb[1]:bb[3],bb[0]:bb[2],:]
         aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
         prewhitened = facenet.prewhiten(aligned) #It subtracts the average and normalizes the range of the pixel values of input images.
@@ -198,9 +199,12 @@ if __name__ == '__main__':
 #	simplify('/Users/jintao01/Documents/Arm-Buddies/unknown_pics/5.jpg','/Users/jintao01/Documents/Arm-Buddies/5.jpg')
 	database = initialize('/Users/jintao01/Documents/facematch/20180204-160909', '/Users/jintao01/Documents/Arm-Buddies', 160, 44, 1.0)
 	# print(database)
-	person_file = ['/Users/jintao01/Documents/Arm-Buddies/unknown_pics/9.jpeg']
-	unknown_face_embedding = get_single_embedding(person_file, '/Users/jintao01/Documents/facematch/20180204-160909', 160, 44, 1.0)
-	print(recognize_face(unknown_face_embedding, database))
+	path = '/Users/jintao01/Documents/Arm-Buddies/unknown_pics'
+	for i in range(1, 10):
+		person_file = [join(path, str(i) + '.jpg')] #[join(path, f) for f in listdir(path) if isfile(join(path, f)) and f != '.DS_Store']
+		unknown_face_embedding = get_single_embedding(person_file, '/Users/jintao01/Documents/facematch/20180204-160909', 160, 44, 1.0) #20181119-002059   #20180204-160909
+		print(recognize_face(unknown_face_embedding, database))
+		time.sleep(5)
 
 #same resolution quality, frontal (instead of tilted face), clear background should work
 # for better result, train from scatch using customer's dataset
